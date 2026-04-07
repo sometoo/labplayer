@@ -1,0 +1,17 @@
+{
+  "name": "MP3 어학 플레이어",
+  "short_name": "어학기",
+  "description": "최적화된 로컬 파일 매니징 및 어학 전용 오디오 플레이어",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MP3 어학기</title>
+    <!-- PWA Settings -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    <link rel="apple-touch-icon" href="icon.svg">
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
@@ -43,8 +48,21 @@
             flex-direction: column;
             align-items: center;
             padding: 10px;
-            overflow: hidden; /* 전체 페이지 스크롤 방지, 내부에서 스크롤 해결 */
+            overflow: hidden; 
         }
+
+        /* 로딩 오버레이 */
+        #loadingOverlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(15, 23, 42, 0.9); z-index: 9999; flex-direction: column;
+            align-items: center; justify-content: center; color: white;
+            backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+        }
+        .spinner {
+            width: 45px; height: 45px; border: 4px solid var(--surface-border); border-top-color: var(--accent-color);
+            border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 20px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         .main-wrapper {
             width: 100%;
@@ -66,116 +84,46 @@
         }
         
         .tab-btn {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            padding: 12px;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 600;
-            transition: all 0.2s;
-            cursor: pointer;
+            flex: 1; background: transparent; border: none; color: var(--text-secondary);
+            padding: 12px; border-radius: 12px; font-size: 1rem; font-weight: 600;
+            transition: all 0.2s; cursor: pointer;
         }
+        .tab-btn.active { background: var(--accent-color); color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
 
-        .tab-btn.active {
-            background: var(--accent-color);
-            color: white;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-        }
-
-        .tab-content {
-            display: none;
-            height: 100%;
-            overflow: hidden;
-        }
-        .tab-content.active {
-            display: flex;
-        }
+        .tab-content { display: none; height: 100%; overflow: hidden; }
+        .tab-content.active { display: flex; }
 
         /* 카드 UI 공통 */
         .card {
-            background: var(--surface-color);
-            backdrop-filter: blur(var(--glass-blur));
-            -webkit-backdrop-filter: blur(var(--glass-blur));
-            border: 1px solid var(--surface-border);
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-            display: flex;
-            flex-direction: column;
+            background: var(--surface-color); backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur)); border: 1px solid var(--surface-border);
+            border-radius: 20px; padding: 20px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            display: flex; flex-direction: column;
         }
 
         /* ---------------- Tab 1: 학습 플레이어 구조 (가로/세로 반응형) ---------------- */
-        
-        /* 세로 모드 (기본, 모바일 스마트폰 세움) - 하위 목차가 맨 위 */
-        .learning-layout {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            height: 100%;
-            width: 100%;
-        }
+        .learning-layout { display: flex; flex-direction: column; gap: 12px; height: 100%; width: 100%; }
         
         .sidebar-toc {
-            order: -1; /* 위쪽에 고정 */
-            flex-shrink: 0;
-            max-height: 220px; /* 세로 모드일때 공간 확보 */
-            background: rgba(0,0,0,0.3);
-            border: 1px solid var(--surface-border);
-            border-radius: 16px;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            order: -1; flex-shrink: 0; max-height: 220px; background: rgba(0,0,0,0.3);
+            border: 1px solid var(--surface-border); border-radius: 16px;
+            display: flex; flex-direction: column; overflow: hidden;
         }
 
-        .main-player-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            overflow-y: auto; /* 플레이어 및 대본 스크롤 */
-            padding-bottom: 20px;
-        }
+        .main-player-area { flex: 1; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; padding-bottom: 20px; }
 
-        /* 가로 모드 (스마트폰 가로 파지, 태블릿, PC) - 하위 목차가 왼쪽 */
         @media (orientation: landscape) and (min-width: 500px) {
-            .learning-layout {
-                flex-direction: row;
-                align-items: stretch;
-            }
-            .sidebar-toc {
-                order: 0; /* 왼쪽에 오게 설정 */
-                width: 250px;
-                max-height: 100%; /* 가로모드는 전체 공간 활용 */
-            }
-            .main-player-area {
-                flex: 1;
-                padding-right: 5px;
-            }
+            .learning-layout { flex-direction: row; align-items: stretch; }
+            .sidebar-toc { order: 0; width: 250px; max-height: 100%; }
+            .main-player-area { flex: 1; padding-right: 5px; }
         }
 
         /* 하위 목차 트리(아코디언) UI 내부 */
-        .toc-header {
-            padding: 12px 16px;
-            background: rgba(255,255,255,0.05);
-            font-weight: 700;
-            color: #e2e8f0;
-            border-bottom: 1px solid var(--surface-border);
-            text-align: center;
-            font-size: 0.95rem;
-            flex-shrink: 0;
-        }
-        .toc-body {
-            flex: 1;
-            overflow-y: auto;
-        }
+        .toc-header { padding: 12px 16px; background: rgba(255,255,255,0.05); font-weight: 700; color: #e2e8f0; border-bottom: 1px solid var(--surface-border); text-align: center; font-size: 0.95rem; flex-shrink: 0; }
+        .toc-body { flex: 1; overflow-y: auto; }
         
         .subfolder-group { border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .subfolder-header { 
-            padding: 12px 16px; font-weight: 600; font-size: 0.95rem; color: #a78bfa; 
-            display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: rgba(255,255,255,0.02);
-        }
+        .subfolder-header { padding: 12px 16px; font-weight: 600; font-size: 0.95rem; color: #a78bfa; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: rgba(255,255,255,0.02); }
         .subfolder-header.active { background: rgba(255,255,255,0.08); }
         .subfolder-header::after { content: "▼"; font-size: 0.7rem; transition: transform 0.2s; }
         .subfolder-header.active::after { transform: rotate(180deg); }
@@ -183,51 +131,33 @@
         .subfolder-content { display: none; background: rgba(0,0,0,0.2); }
         .subfolder-content.active { display: block; }
         
-        .track-item { 
-            padding: 10px 16px 10px 24px; font-size: 0.85rem; color: var(--text-secondary); 
-            border-top: 1px solid rgba(255,255,255,0.02); display: flex; align-items: center; cursor: pointer; transition: all 0.2s;
-        }
+        .track-item { padding: 10px 16px 10px 24px; font-size: 0.85rem; color: var(--text-secondary); border-top: 1px solid rgba(255,255,255,0.02); display: flex; align-items: center; cursor: pointer; transition: all 0.2s; }
         .track-item:active { background: rgba(255,255,255,0.05); }
         .track-item.playing { background: rgba(59, 130, 246, 0.15); color: var(--text-primary); font-weight: 600; border-left: 3px solid var(--accent-color); }
         .track-item.playing::before { content: "▶"; margin-right: 8px; font-size: 0.75rem; color: var(--accent-color); }
 
         /* 플레이어 컨트롤 UI */
         .audio-info { text-align: center; font-size: 1.1rem; font-weight: 700; color: var(--text-primary); word-break: break-all; margin-bottom: 15px; min-height: 40px; }
-        
-        /* 버튼 2줄 레이아웃 (1. 트랙 넘기기/재생결합, 2. 미세 간격 점프) */
         .controls-section { display: flex; flex-direction: column; gap: 8px; }
-        
-        .track-controls-row {
-            display: flex; justify-content: center; align-items: center; gap: 24px; margin-bottom: 5px;
-        }
-        
-        .time-skips-row {
-            display: flex; justify-content: space-evenly; align-items: center; width: 100%; margin-bottom: 10px;
-        }
+        .track-controls-row { display: flex; justify-content: center; align-items: center; gap: 24px; margin-bottom: 5px; }
+        .time-skips-row { display: flex; justify-content: space-evenly; align-items: center; width: 100%; margin-bottom: 10px; }
         
         .btn-icon-wrapper { display: flex; flex-direction: column; align-items: center; color: var(--text-primary); }
         .btn-icon { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text-primary); display: flex; justify-content: center; align-items: center; border-radius: 50%; }
         .btn-icon:active { background: rgba(255,255,255,0.15); }
         
-        /* 이전/다음 트랙 전용 버튼 (둥근 모서리 네모) */
         .btn-track { width: 56px; height: 56px; background: rgba(255,255,255,0.08); border-radius: 16px !important; }
         .btn-track svg { width: 28px; height: 28px; }
         
-        /* 메인 플레이 버튼 */
-        .btn-play {
-            width: 76px; height: 76px; background: var(--accent-color); box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
-            color: white; border-radius: 50%; border: none; display: flex; justify-content: center; align-items: center; flex-shrink: 0;
-        }
+        .btn-play { width: 76px; height: 76px; background: var(--accent-color); box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4); color: white; border-radius: 50%; border: none; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
         .btn-play:active { background: var(--accent-hover); transform: scale(0.95); }
         .btn-play svg { width: 36px; height: 36px; margin-left: 4px; }
         .btn-play.playing svg { margin-left: 0; }
         
-        /* 시간 점프 버튼 */
         .btn-time-jump { width: 44px; height: 44px; }
         .btn-time-jump svg { width: 20px; height: 20px; }
         .skip-text { font-size: 10px; color: var(--text-secondary); margin-top: 4px; font-weight: 600; }
 
-        /* 프로그레스 바 */
         .progress-container { width: 100%; padding: 10px 0; position: relative; }
         .progress-bar-bg { background: rgba(255, 255, 255, 0.15); height: 10px; border-radius: 5px; position: relative; overflow: hidden; }
         .progress-bar-fill { background: var(--accent-color); height: 100%; width: 0%; transition: width 0.1s linear; pointer-events: none;}
@@ -236,14 +166,9 @@
         #markerB { background-color: var(--danger-color); }
         .time-display { display: flex; justify-content: space-between; color: var(--text-secondary); font-size: 0.85rem; font-variant-numeric: tabular-nums; }
 
-        /* 반복/배속 그룹 */
-        .tools-group {
-            display: flex; flex-direction: column; gap: 10px;
-            background: rgba(0, 0, 0, 0.2); padding: 14px; border-radius: 16px; margin-top: 5px;
-        }
+        .tools-group { display: flex; flex-direction: column; gap: 10px; background: rgba(0, 0, 0, 0.2); padding: 14px; border-radius: 16px; margin-top: 5px; }
         .ab-controls { display: flex; gap: 8px; width: 100%; }
-        .btn-ab { flex: 1; background: rgba(255, 255, 255, 0.1); border: 1px solid var(--surface-border);
-            color: var(--text-primary); padding: 12px 4px; border-radius: 10px; font-size: 0.95rem; font-weight: 600; }
+        .btn-ab { flex: 1; background: rgba(255, 255, 255, 0.1); border: 1px solid var(--surface-border); color: var(--text-primary); padding: 12px 4px; border-radius: 10px; font-size: 0.95rem; font-weight: 600; }
         .btn-ab:active { background: rgba(255, 255, 255, 0.2); }
         .btn-ab.active { background: var(--success-color); border-color: var(--success-color); }
         .btn-ab.activeB { background: var(--danger-color); border-color: var(--danger-color); }
@@ -251,7 +176,6 @@
         .speed-select { background: transparent; color: white; border: none; outline: none; font-size: 1rem; font-weight: 600; text-align: right; direction: rtl; }
         .speed-select option { background: #1e293b; direction: ltr; }
 
-        /* 대본 카드 */
         .script-card { display: flex; flex-direction: column; min-height: 250px; flex: 1; }
         .script-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         .script-header h2 { font-size: 1rem; font-weight: 600; }
@@ -259,13 +183,7 @@
         .script-area { flex: 1; width: 100%; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--surface-border); border-radius: 16px; padding: 16px; color: var(--text-primary); font-family: inherit; font-size: 16px; line-height: 1.6; resize: none; outline: none; }
 
         /* ---------------- Tab 2: 라이브러리 목록 관리 UI ---------------- */
-        .library-wrapper {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            height: 100%;
-        }
-
+        .library-wrapper { display: flex; flex-direction: column; width: 100%; height: 100%; }
         .upload-group { display: flex; gap: 12px; width: 100%; margin-bottom: 20px;}
         .file-upload { flex: 1; position: relative; overflow: hidden; display: inline-block; }
         .file-upload-btn { background: rgba(255, 255, 255, 0.05); border: 2px dashed var(--surface-border); border-radius: 14px; padding: 16px; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 600; }
@@ -275,53 +193,31 @@
         .manager-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--surface-border); padding-bottom: 12px; margin-bottom: 12px;}
         .manager-header h2 { font-size: 1.1rem; }
         
-        /* 최상위 폴더 카드 리스트 */
-        .top-folder-container {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            overflow-y: auto;
-            flex: 1;
-            padding-right: 5px;
-        }
-
-        .top-folder-card {
-            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 16px;
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .top-folder-card:hover, .top-folder-card:active {
-            background: rgba(59, 130, 246, 0.15);
-            border-color: rgba(59, 130, 246, 0.5);
-            transform: translateY(-2px);
-        }
-        .top-folder-info {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .top-folder-title {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #f8fafc;
-        }
-        .top-folder-desc {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-        }
+        .top-folder-container { display: flex; flex-direction: column; gap: 12px; overflow-y: auto; flex: 1; padding-right: 5px; }
+        .top-folder-card { background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all 0.2s ease; }
+        .top-folder-card:hover, .top-folder-card:active { background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.5); transform: translateY(-2px); }
+        .top-folder-info { display: flex; flex-direction: column; gap: 4px; flex: 1; overflow: hidden;}
+        .top-folder-title { font-size: 1.2rem; font-weight: 700; color: #f8fafc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .top-folder-desc { font-size: 0.85rem; color: var(--text-secondary); }
         
-        .icon { fill: currentColor; }
+        /* 폴더 휴지통 삭제버튼 */
+        .btn-trash { 
+            background: rgba(239, 68, 68, 0.1); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 10px; padding: 8px 12px; font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 6px; z-index: 10;
+        }
+        .btn-trash:active { background: rgba(239, 68, 68, 0.3); }
+
         .hidden { display: none !important; }
 
     </style>
 </head>
 <body>
+
+    <!-- DB 로딩 오버레이 -->
+    <div id="loadingOverlay">
+        <div class="spinner"></div>
+        <div id="loadingText">기기에서 음원을 불러오는 중입니다...</div>
+    </div>
 
     <audio id="audioPlayer"></audio>
 
@@ -335,7 +231,6 @@
         <!-- 탭 1: 학습 플레이어 -->
         <div class="tab-content" id="contentPlayer">
             <div class="learning-layout">
-                <!-- 하위 목차 영역 (반응형: 세로모드-최상단 / 가로모드-좌측 사이드바) -->
                 <div class="sidebar-toc" id="learningToc">
                     <div class="toc-header" id="tocHeaderTitle">학습 목차를 선택해주세요</div>
                     <div class="toc-body" id="tocBody">
@@ -345,7 +240,6 @@
                     </div>
                 </div>
 
-                <!-- 플레이어 메인 영역 -->
                 <div class="main-player-area">
                     <div class="card player-card">
                         <div class="audio-info" id="audioName">
@@ -353,7 +247,6 @@
                         </div>
 
                         <div class="controls-section">
-                            <!-- 프로그레스 바 -->
                             <div class="progress-container" id="progressContainer">
                                 <div class="progress-bar-bg" id="progressBarBg">
                                     <div class="progress-bar-fill" id="progressBarFill"></div>
@@ -366,13 +259,9 @@
                                 <span id="duration">00:00</span>
                             </div>
 
-                            <!-- 첫번째 줄: 이전 곡 / 재생 / 다음 곡 -->
                             <div class="track-controls-row">
                                 <div class="btn-icon-wrapper" id="btnPrevTrack">
-                                    <button class="btn-icon btn-track">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
-                                    </button>
-                                    <!--<span class="skip-text">이전 곡</span>-->
+                                    <button class="btn-icon btn-track"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg></button>
                                 </div>
                                 <div class="btn-icon-wrapper btn-play-wrapper">
                                     <button class="btn-play" id="btnPlayPause">
@@ -381,32 +270,18 @@
                                     </button>
                                 </div>
                                 <div class="btn-icon-wrapper" id="btnNextTrack">
-                                    <button class="btn-icon btn-track">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
-                                    </button>
-                                    <!--<span class="skip-text">다음 곡</span>-->
+                                    <button class="btn-icon btn-track"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg></button>
                                 </div>
                             </div>
 
-                            <!-- 두번째 줄: 시간 미세 건너뛰기 컨트롤 -->
                             <div class="time-skips-row">
-                                <div class="btn-icon-wrapper" id="btnSkipBack">
-                                    <div class="btn-icon btn-time-jump"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 19 2 12 11 5 11 19"></polygon><polygon points="22 19 13 12 22 5 22 19"></polygon></svg></div><span class="skip-text">-5s</span>
-                                </div>
-                                <div class="btn-icon-wrapper" id="btnSkipBackSmall">
-                                    <div class="btn-icon btn-time-jump"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg></div><span class="skip-text">-3s</span>
-                                </div>
-                                
-                                <div class="btn-icon-wrapper" id="btnSkipForwardSmall">
-                                    <div class="btn-icon btn-time-jump"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg></div><span class="skip-text">+3s</span>
-                                </div>
-                                <div class="btn-icon-wrapper" id="btnSkipForward">
-                                    <div class="btn-icon btn-time-jump"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 19 22 12 13 5 13 19"></polygon><polygon points="2 19 11 12 2 5 2 19"></polygon></svg></div><span class="skip-text">+5s</span>
-                                </div>
+                                <div class="btn-icon-wrapper" id="btnSkipBack"><div class="btn-icon btn-time-jump"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 19 2 12 11 5 11 19"></polygon><polygon points="22 19 13 12 22 5 22 19"></polygon></svg></div><span class="skip-text">-5s</span></div>
+                                <div class="btn-icon-wrapper" id="btnSkipBackSmall"><div class="btn-icon btn-time-jump"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg></div><span class="skip-text">-3s</span></div>
+                                <div class="btn-icon-wrapper" id="btnSkipForwardSmall"><div class="btn-icon btn-time-jump"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg></div><span class="skip-text">+3s</span></div>
+                                <div class="btn-icon-wrapper" id="btnSkipForward"><div class="btn-icon btn-time-jump"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 19 22 12 13 5 13 19"></polygon><polygon points="2 19 11 12 2 5 2 19"></polygon></svg></div><span class="skip-text">+5s</span></div>
                             </div>
                         </div>
 
-                        <!-- AB 구간 및 배속 -->
                         <div class="tools-group">
                             <div class="ab-controls">
                                 <button class="btn-ab" id="btnSetA">A 구간 반복점</button>
@@ -416,22 +291,17 @@
                             <div class="speed-control">
                                 <span style="font-size: 0.95rem; color: var(--text-secondary); width: 100px;">재생 속도</span>
                                 <select class="speed-select" id="speedSelect">
-                                    <option value="0.5">0.5x</option>
-                                    <option value="0.75">0.75x</option>
+                                    <option value="0.5">0.5x</option><option value="0.75">0.75x</option>
                                     <option value="1.0" selected>1.0x (기본)</option>
-                                    <option value="1.25">1.25x</option>
-                                    <option value="1.5">1.5x</option>
-                                    <option value="2.0">2.0x</option>
+                                    <option value="1.25">1.25x</option><option value="1.5">1.5x</option><option value="2.0">2.0x</option>
                                 </select>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 스크립트 도구 -->
                     <div class="card script-card">
                         <div class="script-header">
-                            <h2>대본 및 메모장</h2>
-                            <button class="btn-clear" id="btnClearScript">지우기</button>
+                            <h2>대본 및 메모장</h2><button class="btn-clear" id="btnClearScript">지우기</button>
                         </div>
                         <textarea class="script-area" id="scriptArea" placeholder="여기에 대본이나 텍스트를 붙여넣으세요. &#13;&#10;(내용은 자동 보관됩니다)"></textarea>
                     </div>
@@ -443,7 +313,7 @@
         <div class="tab-content active" id="contentManager">
             <div class="card library-wrapper">
                 <div class="manager-header">
-                    <h2>새 음원 추가 (로컬)</h2>
+                    <h2>기기 저장소에 새 음원 보관</h2>
                 </div>
                 <div class="upload-group">
                     <div class="file-upload">
@@ -453,7 +323,6 @@
                         </div>
                         <input type="file" id="audioUpload" accept="*/*" multiple>
                     </div>
-                    
                     <div class="file-upload">
                         <div class="file-upload-btn" style="border-color: rgba(167, 139, 250, 0.4); background: rgba(167, 139, 250, 0.05);">
                             <svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path><line x1="12" y1="11" x2="12" y2="17"></line><line x1="9" y1="14" x2="15" y2="14"></line></svg>
@@ -464,18 +333,27 @@
                 </div>
 
                 <div class="manager-header" style="margin-top:10px;">
-                    <h2>최상위 폴더 목록</h2>
-                    <button class="btn-clear" id="btnClearAllList" style="font-size: 0.8rem; background:rgba(239, 68, 68, 0.2); color:#fca5a5;">전체 비우기</button>
+                    <h2>저장된 최상위 폴더</h2>
+                    <button class="btn-clear" id="btnClearAllList" style="font-size: 0.8rem; background:rgba(239, 68, 68, 0.2); color:#fca5a5;">디스크 싹 비우기</button>
                 </div>
                 
                 <div class="top-folder-container" id="topFolderContainer">
-                    <div style="text-align:center; padding:50px; font-size:0.95rem; color:var(--text-secondary);">버튼을 눌러 음원이나 폴더를 추가해주세요.</div>
+                    <!-- JS Rendering -->
                 </div>
             </div>
         </div>
     </div>
 
     <script>
+        // --- PWA Service Worker 등록 ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(err => {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+            });
+        }
+
         // --- 탭 UI 로직 ---
         const tabBtnPlayer = document.getElementById('tabBtnPlayer');
         const tabBtnManager = document.getElementById('tabBtnManager');
@@ -497,7 +375,7 @@
         // --- Core Data State ---
         let allTracks = []; 
         let currentTrackId = null;
-        let activeTopFolder = null; // 학습탭에서 현재 다루고 있는 최상위 폴더
+        let activeTopFolder = null; 
 
         // HTML 요소
         const audio = document.getElementById('audioPlayer');
@@ -513,11 +391,111 @@
         const progressContainer = document.getElementById('progressContainer');
         const currentTimeEl = document.getElementById('currentTime');
         const durationEl = document.getElementById('duration');
-        
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingText = document.getElementById('loadingText');
+
         let pointA = null; let pointB = null;
 
-        // --- 파일 임포트 분석 ---
-        function handleFiles(e) {
+        // --- IndexedDB 영구 저장 파트 ---
+        const DB_NAME = 'MP3LearnerDB';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'tracksStore';
+        let db;
+
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onerror = e => reject(e.target.error);
+                request.onsuccess = e => { db = e.target.result; resolve(); };
+                request.onupgradeneeded = e => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                        store.createIndex('topFolder', 'topFolder', { unique: false });
+                    }
+                };
+            });
+        }
+
+        function saveTracksToDB(tracksArray) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction([STORE_NAME], 'readwrite');
+                const store = tx.objectStore(STORE_NAME);
+                tracksArray.forEach(track => {
+                    const toStore = { ...track };
+                    delete toStore.url; // url(blob)은 로드할때마다 만드므로 DB저장 생략
+                    store.put(toStore);
+                });
+                tx.oncomplete = () => resolve();
+                tx.onerror = e => reject(e.target.error);
+            });
+        }
+
+        function loadAllTracksFromDB() {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction([STORE_NAME], 'readonly');
+                const store = tx.objectStore(STORE_NAME);
+                const request = store.getAll();
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = e => reject(e.target.error);
+            });
+        }
+
+        function deleteTopFolderFromDB(topFolder) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction([STORE_NAME], 'readwrite');
+                const store = tx.objectStore(STORE_NAME);
+                const index = store.index('topFolder');
+                const request = index.openCursor(IDBKeyRange.only(topFolder));
+                request.onsuccess = e => {
+                    const cursor = e.target.result;
+                    if (cursor) { cursor.delete(); cursor.continue(); }
+                };
+                tx.oncomplete = () => resolve();
+                tx.onerror = e => reject(e.target.error);
+            });
+        }
+
+        function clearAllDB() {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction([STORE_NAME], 'readwrite');
+                const store = tx.objectStore(STORE_NAME);
+                const req = store.clear();
+                req.onsuccess = () => resolve();
+                req.onerror = e => reject(e.target.error);
+            });
+        }
+        
+        function sortTracksArray() {
+            allTracks.sort((a, b) => {
+                if (a.topFolder !== b.topFolder) return a.topFolder.localeCompare(b.topFolder, undefined, {numeric: true, sensitivity: 'base'});
+                if (a.subFolder !== b.subFolder) return a.subFolder.localeCompare(b.subFolder, undefined, {numeric: true, sensitivity: 'base'});
+                return a.name.localeCompare(b.name, undefined, {numeric: true, sensitivity: 'base'});
+            });
+        }
+
+        function showLoading(msg) { loadingText.textContent = msg; loadingOverlay.style.display = 'flex'; }
+        function hideLoading() { loadingOverlay.style.display = 'none'; }
+
+        // --- 초기 기동 시 전체 로딩 ---
+        window.addEventListener('DOMContentLoaded', async () => {
+            showLoading('이전 저장된 오디오를 불러오는 중입니다...');
+            try {
+                await initDB();
+                const stored = await loadAllTracksFromDB();
+                if(stored && stored.length > 0) {
+                    allTracks = stored.map(t => {
+                        return { ...t, url: URL.createObjectURL(t.file) }; // Blob에서 새 URL 발급
+                    });
+                    sortTracksArray();
+                }
+                renderTopFolderList();
+            } catch(e) { console.error('DB오류:', e); }
+            hideLoading();
+        });
+
+        // --- 파일 임포트 분석 및 브라우저 저장 ---
+        async function handleFiles(e) {
             const rawFiles = Array.from(e.target.files);
             const files = rawFiles.filter(file => 
                 file.type.startsWith('audio/') || 
@@ -525,58 +503,54 @@
             );
 
             if (rawFiles.length > 0 && files.length === 0) {
-                alert("지원하는 오디오 파임을 찿을 수 없습니다.");
+                alert("지원하는 오디오 파일이 포함되어 있지 않습니다.");
+                return;
             }
 
             if (files.length > 0) {
+                showLoading("기기 저장소에 안전하게 복사 중입니다..."); // 용량이 크면 IndexedDB 쓰기 시간이 걸림
+                // 화면 렌더링을 위해 잠깐 타임아웃
+                await new Promise(r => setTimeout(r, 100));
+
                 const newTracks = files.map(file => {
-                    let topFolder = "개별 묶음 폴더"; // 기본값
-                    let subFolder = "기본 목록"; // 하위 폴더 기본값
+                    let topFolder = "개별 묶음 폴더"; 
+                    let subFolder = "기본 목록"; 
                     
                     const path = file.webkitRelativePath || "";
                     if (path && path.includes('/')) {
                         const parts = path.split('/');
-                        // parts 예: ["2권", "05과", "listen.mp3"] -> length 3
-                        // parts 예: ["2권", "listen.mp3"] -> length 2
                         if (parts.length >= 3) {
-                            topFolder = parts[0]; // 최상위 (ex: 2권)
-                            subFolder = parts[parts.length - 2]; // 폴더 (ex: 5과)
-                        } else if (parts.length === 2) {
-                            topFolder = parts[0];
-                        }
+                            topFolder = parts[0]; 
+                            subFolder = parts[parts.length - 2];
+                        } else if (parts.length === 2) { topFolder = parts[0]; }
                     }
 
                     return {
                         id: Date.now().toString(36) + Math.random().toString(36).substr(2),
-                        file: file,
-                        name: file.name.replace(/\.[^/.]+$/, ""), // 마침표 기반의 확장자 부분 제거
+                        file: file, // File 객체(Blob) 그대로 DB에 넣음 (영구 보관의 핵심)
+                        name: file.name.replace(/\.[^/.]+$/, ""),
                         topFolder: topFolder,
                         subFolder: subFolder,
-                        url: URL.createObjectURL(file)
+                        url: URL.createObjectURL(file) 
                     };
                 });
 
                 allTracks = allTracks.concat(newTracks);
+                sortTracksArray();
                 
-                // 요청사항: 숫자가 자연스럽게 정렬되도록 (1과, 2과 순서대로 = 오름차순(Ascending))
-                allTracks.sort((a, b) => {
-                    if (a.topFolder !== b.topFolder) {
-                        return a.topFolder.localeCompare(b.topFolder, undefined, {numeric: true, sensitivity: 'base'});
-                    }
-                    if (a.subFolder !== b.subFolder) {
-                        // 오름차순
-                        return a.subFolder.localeCompare(b.subFolder, undefined, {numeric: true, sensitivity: 'base'});
-                    }
-                    return a.name.localeCompare(b.name, undefined, {numeric: true, sensitivity: 'base'});
-                });
+                try {
+                    await saveTracksToDB(newTracks);
+                } catch(err) {
+                    alert("저장 공간이 부족하거나 권한 오류가 발생했습니다.");
+                }
 
                 renderTopFolderList();
                 
-                // 추가 직후 팝업된 최상위 폴더가 하나뿐이면 바로 거기로 진입
                 const uniqueTop = [...new Set(allTracks.map(t=>t.topFolder))];
                 if(uniqueTop.length === 1 && !activeTopFolder) {
                     selectTopFolder(uniqueTop[0]);
                 }
+                hideLoading();
             }
             e.target.value = '';
         }
@@ -584,23 +558,31 @@
         document.getElementById('audioUpload').addEventListener('change', handleFiles);
         document.getElementById('folderUpload').addEventListener('change', handleFiles);
 
-        document.getElementById('btnClearAllList').addEventListener('click', () => {
-            if(confirm("모든 재생목록을 삭제하시겠습니까?")) {
+        // --- 삭제 로직들 ---
+        document.getElementById('btnClearAllList').addEventListener('click', async () => {
+            if(confirm("기내 내부에 저장된 모든 재생목록 폴더와 파일을 완전히 지우시겠습니까?")) {
+                showLoading("디스크 지우는 중...");
+                await clearAllDB();
                 allTracks = [];
-                currentTrackId = null;
-                activeTopFolder = null;
-                audio.pause();
-                audio.src = '';
-                audioName.innerHTML = `<span style="font-size:0.85rem; color:var(--text-secondary); font-weight:400;">현재 선택된 곡이 없습니다</span>`;
-                tocHeaderTitle.textContent = "학습 목차를 선택해주세요";
-                tocBody.innerHTML = '<div style="text-align:center; padding:30px; font-size:0.85rem; color:var(--text-secondary);">라이브러리 탭에서 먼저<br>최상위 폴더를 클릭하세요.</div>';
+                resetPlayerState();
                 renderTopFolderList();
-                resetAB();
-                btnPlayPause.classList.remove('playing');
-                iconPlay.classList.remove('hidden');
-                iconPause.classList.add('hidden');
+                hideLoading();
             }
         });
+
+        function resetPlayerState() {
+            currentTrackId = null;
+            activeTopFolder = null;
+            audio.pause();
+            audio.src = '';
+            audioName.innerHTML = `<span style="font-size:0.85rem; color:var(--text-secondary); font-weight:400;">현재 선택된 곡이 없습니다</span>`;
+            tocHeaderTitle.textContent = "학습 목차를 선택해주세요";
+            tocBody.innerHTML = '<div style="text-align:center; padding:30px; font-size:0.85rem; color:var(--text-secondary);">라이브러리 탭에서 먼저<br>최상위 폴더를 클릭하세요.</div>';
+            resetAB();
+            btnPlayPause.classList.remove('playing');
+            iconPlay.classList.remove('hidden');
+            iconPause.classList.add('hidden');
+        }
 
         // --- 탭 2: 최상위 폴더 렌더링 ---
         function renderTopFolderList() {
@@ -608,7 +590,7 @@
             const uniqueTop = [...new Set(allTracks.map(t => t.topFolder))];
             
             if (uniqueTop.length === 0) {
-                topFolderContainer.innerHTML = '<div style="text-align:center; padding:50px; font-size:0.95rem; color:var(--text-secondary);">버튼을 눌러 음원이나 폴더를 추가해주세요.</div>';
+                topFolderContainer.innerHTML = '<div style="text-align:center; padding:50px; font-size:0.95rem; color:var(--text-secondary);">버튼을 눌러 음원이나 폴더를 추가해주세요. 기기 내부에 보관됩니다.</div>';
                 return;
             }
 
@@ -621,29 +603,40 @@
                 card.innerHTML = `
                     <div class="top-folder-info">
                         <div class="top-folder-title">📁 ${topName}</div>
-                        <div class="top-folder-desc">총 ${subSets.size}개 그룹 / ${tracksInTop.length}개 음원</div>
+                        <div class="top-folder-desc">총 ${subSets.size}개 그룹 / ${tracksInTop.length}개 음원 보관중</div>
                     </div>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
                 `;
-                card.addEventListener('click', () => {
-                    selectTopFolder(topName);
+                
+                // 개별 휴지통 버튼 주입
+                const delBtn = document.createElement('button');
+                delBtn.className = 'btn-trash';
+                delBtn.innerHTML = `🗑️ 버리기`;
+                delBtn.addEventListener('click', async (e) => {
+                    e.stopPropagation(); // 폴더 진입 막음
+                    if(confirm(`[ ${topName} ] 폴더와 내부 음원 전체를 영구 삭제하시겠습니까?`)){
+                        showLoading("폴더 지우는 중...");
+                        await deleteTopFolderFromDB(topName);
+                        allTracks = allTracks.filter(t => t.topFolder !== topName);
+                        if(activeTopFolder === topName) { resetPlayerState(); }
+                        renderTopFolderList();
+                        hideLoading();
+                    }
                 });
+
+                card.appendChild(delBtn);
+                card.addEventListener('click', () => selectTopFolder(topName));
                 topFolderContainer.appendChild(card);
             });
         }
 
-        // 최상위 폴더 선택 및 플레이어 탭 이동
         function selectTopFolder(topName) {
             activeTopFolder = topName;
             tocHeaderTitle.textContent = `📚 [ ${topName} ] 학습 목차`;
-            
-            // 첫 진입시 아직 재생중인 곡이 없다면 이 폴더의 첫 곡을 세팅 (자동재생은 X)
             const tracksInTop = allTracks.filter(t => t.topFolder === activeTopFolder);
             if(tracksInTop.length > 0 && currentTrackId === null) {
                 currentTrackId = tracksInTop[0].id;
                 loadAndPlayById(currentTrackId, false);
             }
-            
             renderPlayerTOC();
             switchTab('player');
         }
@@ -654,21 +647,17 @@
             if(!activeTopFolder) return;
 
             const tracksInTop = allTracks.filter(t => t.topFolder === activeTopFolder);
-            
-            // 하위 폴더별 그룹핑
             const grouped = {};
             tracksInTop.forEach(t => {
                 if(!grouped[t.subFolder]) grouped[t.subFolder] = [];
                 grouped[t.subFolder].push(t);
             });
 
-            // Set은 들어온 순서를 보장하고, 맨 처음 sort에서 오름차순으로 정리했으므로 그대로 펼침
             const uniqueSub = [...new Set(tracksInTop.map(t => t.subFolder))];
 
             uniqueSub.forEach(subName => {
                 const groupDiv = document.createElement('div');
                 groupDiv.className = 'subfolder-group';
-
                 const headerBtn = document.createElement('div');
                 headerBtn.className = 'subfolder-header';
                 headerBtn.textContent = `📂 ${subName}`;
@@ -676,29 +665,19 @@
                 const contentDiv = document.createElement('div');
                 contentDiv.className = 'subfolder-content';
 
-                // 현재 속한 하위 폴더 자동 펼침
                 const currentTrackObj = allTracks.find(t => t.id === currentTrackId);
                 if (currentTrackObj && currentTrackObj.subFolder === subName && currentTrackObj.topFolder === activeTopFolder) {
-                    headerBtn.classList.add('active');
-                    contentDiv.classList.add('active');
+                    headerBtn.classList.add('active'); contentDiv.classList.add('active');
                 }
 
-                headerBtn.addEventListener('click', () => {
-                    headerBtn.classList.toggle('active');
-                    contentDiv.classList.toggle('active');
-                });
+                headerBtn.addEventListener('click', () => { headerBtn.classList.toggle('active'); contentDiv.classList.toggle('active'); });
 
                 grouped[subName].forEach(track => {
                     const itemDiv = document.createElement('div');
                     itemDiv.className = 'track-item';
                     itemDiv.textContent = track.name;
-                    if(track.id === currentTrackId) {
-                        itemDiv.classList.add('playing');
-                    }
-                    itemDiv.addEventListener('click', () => {
-                        currentTrackId = track.id;
-                        loadAndPlayById(track.id, true);
-                    });
+                    if(track.id === currentTrackId) { itemDiv.classList.add('playing'); }
+                    itemDiv.addEventListener('click', () => { currentTrackId = track.id; loadAndPlayById(track.id, true); });
                     contentDiv.appendChild(itemDiv);
                 });
 
@@ -708,7 +687,15 @@
             });
         }
 
-        // --- 플레이어 코어 로직 ---
+        // --- 플레이어 코어 및 Wake Lock 로직 ---
+        let wakeLock = null;
+        async function requestWakeLock() { try { if ('wakeLock' in navigator) { wakeLock = await navigator.wakeLock.request('screen'); } } catch (err) {} }
+        function releaseWakeLock() { if (wakeLock !== null) { wakeLock.release().then(() => { wakeLock = null; }); } }
+        document.addEventListener('visibilitychange', async () => {
+            if (wakeLock !== null && document.visibilityState === 'visible') requestWakeLock();
+            else if (!audio.paused && document.visibilityState === 'visible') requestWakeLock();
+        });
+
         function loadAndPlayById(targetId, autoPlay = true) {
             const trackIndex = allTracks.findIndex(t => t.id === targetId);
             if(trackIndex === -1) return;
@@ -719,7 +706,7 @@
             audio.load();
             
             resetAB();
-            renderPlayerTOC(); // 상태 렌더를 위해 업데이트
+            renderPlayerTOC(); 
             
             if('preservesPitch' in audio) audio.preservesPitch = true;
             audio.playbackRate = parseFloat(document.getElementById('speedSelect').value) || 1.0;
@@ -727,80 +714,30 @@
             if(autoPlay) audio.play();
         }
 
-        // 이전/다음 곡 버튼 제어 (스마트 크로스 로직)
         function playPrevTrack() {
             if (!activeTopFolder || currentTrackId === null) return;
-            
-            // 재생시간이 2초가 넘었을때 이전 누르면 그냥 현재곡 0초로 돌림 (보통 플레이어들의 룰)
-            if (audio.currentTime > 2.0) {
-                audio.currentTime = 0;
-                if(audio.paused) audio.play();
-                return;
-            }
-
-            // 현재 최상위 폴더 내 리스트 추출 (정렬은 이미 위에서 완벽히 되어있음)
+            if (audio.currentTime > 2.0) { audio.currentTime = 0; if(audio.paused) audio.play(); return; }
             const currentList = allTracks.filter(t => t.topFolder === activeTopFolder);
             const index = currentList.findIndex(t => t.id === currentTrackId);
-            
             if (index === -1) return;
-
-            // 맨 첫 곡에서 이전 곡 누르면 곡의 맨 처음 위치(0초)로 튕김
-            if (index === 0) {
-                audio.currentTime = 0;
-                if(audio.paused) audio.play();
-                return;
-            }
-
-            // 이전 곡 이동 (하위 폴더 경계를 자동으로 넘어서 이전 폴더의 마지막 곡 재생됨 = 정렬 알고리즘 덕분)
+            if (index === 0) { audio.currentTime = 0; if(audio.paused) audio.play(); return; }
             currentTrackId = currentList[index - 1].id;
             loadAndPlayById(currentTrackId, true);
         }
 
         function playNextTrack() {
             if (!activeTopFolder || currentTrackId === null) return;
-            
             const currentList = allTracks.filter(t => t.topFolder === activeTopFolder);
             const index = currentList.findIndex(t => t.id === currentTrackId);
-            
             if (index === -1) return;
-
-            // 마지막 곡이 아니면 다음 곡 탑승
-            if (index < currentList.length - 1) {
-                currentTrackId = currentList[index + 1].id;
-                loadAndPlayById(currentTrackId, true);
-            }
+            if (index < currentList.length - 1) { currentTrackId = currentList[index + 1].id; loadAndPlayById(currentTrackId, true); }
         }
 
         document.getElementById('btnPrevTrack').addEventListener('click', playPrevTrack);
         document.getElementById('btnNextTrack').addEventListener('click', playNextTrack);
 
-        // 곡 자동 종료시 다음 곡 자동 이동
-        audio.addEventListener('ended', () => {
-            if (pointA === null) {
-                playNextTrack(); // AB 설정이 없으면 다음 트랙 이동
-            }
-        });
+        audio.addEventListener('ended', () => { if (pointA === null) playNextTrack(); });
 
-        // ------------------ 화면 자동 꺼짐 방지 (Wake Lock) ------------------ //
-        let wakeLock = null;
-        async function requestWakeLock() {
-            try {
-                if ('wakeLock' in navigator) {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                }
-            } catch (err) { console.error('Wake Lock failed:', err); }
-        }
-        function releaseWakeLock() {
-            if (wakeLock !== null) {
-                wakeLock.release().then(() => { wakeLock = null; });
-            }
-        }
-        document.addEventListener('visibilitychange', async () => {
-            if (wakeLock !== null && document.visibilityState === 'visible') { requestWakeLock(); }
-            else if (!audio.paused && document.visibilityState === 'visible') { requestWakeLock(); }
-        });
-
-        // ------------------ PLAYER TIME & CONTROLS ------------------ //
         function formatTime(s) { 
             if(isNaN(s)) return "00:00"; 
             let m=Math.floor(s/60), sec=Math.floor(s%60); 
@@ -808,14 +745,8 @@
         }
 
         audio.addEventListener('loadedmetadata', () => { durationEl.textContent = formatTime(audio.duration); });
-        audio.addEventListener('play', () => {
-            btnPlayPause.classList.add('playing'); iconPlay.classList.add('hidden'); iconPause.classList.remove('hidden');
-            requestWakeLock();
-        });
-        audio.addEventListener('pause', () => {
-            btnPlayPause.classList.remove('playing'); iconPlay.classList.remove('hidden'); iconPause.classList.add('hidden');
-            releaseWakeLock();
-        });
+        audio.addEventListener('play', () => { btnPlayPause.classList.add('playing'); iconPlay.classList.add('hidden'); iconPause.classList.remove('hidden'); requestWakeLock(); });
+        audio.addEventListener('pause', () => { btnPlayPause.classList.remove('playing'); iconPlay.classList.remove('hidden'); iconPause.classList.add('hidden'); releaseWakeLock(); });
 
         btnPlayPause.addEventListener('click', () => {
             if (!audio.src) { alert('목록에서 음원을 선택해주세요.'); return; }
@@ -846,51 +777,36 @@
         document.getElementById('btnSkipBackSmall').addEventListener('click', () => skipTime(-3));
         document.getElementById('btnSkipForwardSmall').addEventListener('click', () => skipTime(3));
 
-        document.getElementById('speedSelect').addEventListener('change', (e) => {
-            if (audio.src) audio.playbackRate = parseFloat(e.target.value);
-        });
+        document.getElementById('speedSelect').addEventListener('change', (e) => { if (audio.src) audio.playbackRate = parseFloat(e.target.value); });
 
         const markerA = document.getElementById('markerA'); const markerB = document.getElementById('markerB');
         const btnSetA = document.getElementById('btnSetA'); const btnSetB = document.getElementById('btnSetB'); const btnClearAB = document.getElementById('btnClearAB');
-
         function updateMarkers() {
             if (pointA !== null && audio.duration) { markerA.style.left = `${(pointA / audio.duration) * 100}%`; markerA.style.display = 'block'; } else { markerA.style.display = 'none'; }
             if (pointB !== null && audio.duration) { markerB.style.left = `${(pointB / audio.duration) * 100}%`; markerB.style.display = 'block'; } else { markerB.style.display = 'none'; }
         }
-
         btnSetA.addEventListener('click', () => {
             if (!audio.src) return;
             pointA = audio.currentTime; btnSetA.classList.add('active'); btnSetA.textContent = "A 점 설정됨"; btnClearAB.style.display = 'block';
             if (pointB !== null && pointB <= pointA) { pointB = null; btnSetB.classList.remove('activeB'); btnSetB.textContent = "B 구간 반복점"; }
             updateMarkers();
         });
-
         btnSetB.addEventListener('click', () => {
             if (!audio.src) return;
             if (pointA === null) return alert('A 구간을 먼저 눌러주세요.');
             if (audio.currentTime <= pointA) return alert('B 구간은 A보다 뒤여야 합니다.');
             pointB = audio.currentTime; btnSetB.classList.add('activeB'); btnSetB.textContent = "B 점 설정됨"; btnClearAB.style.display = 'block'; updateMarkers();
         });
-
         btnClearAB.addEventListener('click', resetAB);
         function resetAB() {
-            pointA = null; pointB = null;
-            btnSetA.classList.remove('active'); btnSetA.textContent = "A 구간 반복점";
-            btnSetB.classList.remove('activeB'); btnSetB.textContent = "B 구간 반복점";
-            btnClearAB.style.display = 'none'; updateMarkers();
+            pointA = null; pointB = null; btnSetA.classList.remove('active'); btnSetA.textContent = "A 구간 반복점"; btnSetB.classList.remove('activeB'); btnSetB.textContent = "B 구간 반복점"; btnClearAB.style.display = 'none'; updateMarkers();
         }
 
-        // 대본 / 메모장 로직
         const scriptArea = document.getElementById('scriptArea');
         if (localStorage.getItem('mp3Learner_script')) scriptArea.value = localStorage.getItem('mp3Learner_script');
         let scrTimeout;
-        scriptArea.addEventListener('input', () => {
-            clearTimeout(scrTimeout);
-            scrTimeout = setTimeout(() => { localStorage.setItem('mp3Learner_script', scriptArea.value); }, 500);
-        });
-        document.getElementById('btnClearScript').addEventListener('click', () => {
-            if (confirm('대본을 지우시겠습니까?')) { scriptArea.value = ''; localStorage.removeItem('mp3Learner_script'); }
-        });
+        scriptArea.addEventListener('input', () => { clearTimeout(scrTimeout); scrTimeout = setTimeout(() => { localStorage.setItem('mp3Learner_script', scriptArea.value); }, 500); });
+        document.getElementById('btnClearScript').addEventListener('click', () => { if (confirm('대본을 지우시겠습니까?')) { scriptArea.value = ''; localStorage.removeItem('mp3Learner_script'); } });
 
     </script>
 </body>
